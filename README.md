@@ -1,22 +1,21 @@
-# Gulp BoBrSASS Boilerplate
-[![Build Status](https://travis-ci.org/SC5/gulp-bobrsass-boilerplate.png?branch=master)](https://travis-ci.org/SC5/gulp-bobrsass-boilerplate.png?branch=master)
+# Backbone Serverside, KOA example
 
-Gulp BoBrSASS Boilerplate is an evolutionary step from our earlier
-[Grunt BoReLESS Boilerplate](https://github.com/SC5/grunt-boreless-boilerplate?source=cc).
-It aims to cover the same needs, but at the same time remove some of the annoyances we have
-encountered:
-* Faster builds
-* Runs in background (watching changes), supports live reload
-* Supports source maps for both JavaScript and SASS
-* Scriptless, NPM driven deployments (to ease e.g. AWS OpsWorks & Windows deployments)
-* Browserify (or in future something else) for better web app packaging
+This is an example on how to build, package and run an isomorphic Backbone application. It is
+based on [Gulp BoBrSASS Boilerplate](https://github.com/SC5/gulp-bobrsass-boilerplate) and
+demonstrates the use of [Backbone Server-side Adapters](https://github.com/SC5/backbone-serverside-adapters).
 
-Rather than being fashinably opinionated, for some less significant things a democratic process
-works better (no matter how good or bad the opinions were). Therefore, the majority votes have
-been cast as follows:
-* Spaces instead of tabs
-* SASS & Compass instead of LESS
-* Jasmine instead of Karma
+## How does it work?
+
+Node.js can execute JavaScript in a sandbox that does not pollute node.js global scope.
+This sandbox has no node.js globals or anything, so it is a perfect clean slate for
+executing isomorphic apps in a sandbox. The isomorphic app is compiled, and when a
+HTTP request arrives, the application script is executed in a new context in its own
+sandbox. This permits the
+
+Browserify creates self-contained application bundles which fits to the idea of running
+applications in isolation. In theory, this permits storing the contexts between requests,
+so contrary to several earlier approaches, we could simulate stateful browsing between pages
+using this approach.
 
 ## Installation
 
@@ -25,7 +24,7 @@ If you don't already have node.js 0.10.x or later, fetch it from
 you may have.
 
     > npm install -g gulp
-    
+
 In addition, you will need [Ruby](https://www.ruby-lang.org/en/downloads/) to use
 Compass framework for compiling SASS stylesheets into CSS and sprite sheets:
 
@@ -44,41 +43,26 @@ It actually performs a release build, too (to verify that everything is ok).
 
 ## Building
 
-The current build compiles JS and CSS monoliths for both the debug and release builds. The big
-difference is that the debug build supports source maps and is not minified.
+The build is based on BoBrSASS, so the same commands apply. What you will need here to get started is:
 
-To first cleanup your distribution directory and trigger **release** build
-
-    > gulp clean
-    > gulp
-
-To trigger **debug** build, run gulp with a debug flag
-
-    > gulp --debug
-    
-To keep gulp running and watch for changes, use e.g.
-
-    > gulp watch --debug
-
-To update your package version, you eventually want to do one of the following:
-
-    > gulp bump --patch
-    > gulp bump --minor
-    > gulp bump --major
-    > gulp bump # defaults to minor
+    > npm install     # to install & update dependencies
+    > gulp            # for builds
+    > gulp clean      # for cleanup
+    > gulp watch      # to monitor source code changes
+    > npm start       # to start the server
 
 ## Running the Service
 
-Most likely the normal *gulp serve* task will not suffice, and you want to run your own test
-server, instead. The task below, will default to 'gulp serve' by default until you change it:
+To start the service, you need to first need to have a successful build. Then start the service:
 
     > npm start
 
-### Live reloading the changes
+You are perfectly able to run 'gulp watch', the server will listen to modifications in 'index.html'
+and 'bundle-server.js'. You may want to turn off server-side or client-side processing by using
+the query string parameters
 
-Live reloading is enabled when running *gulp watch* in another window. Just change any of your
-JavaScript or SASS files to trigger reload. The reload monitors 'dist' directory and pushes the
-changes as needed.
+    http://localhost:8080/?browser=off
+    http://localhost:8080/?server=off
 
 ##  Extending & Hacking
 
@@ -86,63 +70,38 @@ changes as needed.
 
 #### App
 
-    src/             The client-side source code
-    src/index.html   The HTML entry point, stub page
-    src/app          Application source code
-    src/app/main.js  The app JS entry point
-    src/components   The 3rd party JS dependencies
-    src/css          The CSS templates
-
+    src/                    The client-side source code
+    src/index.html          The HTML entry point, stub page
+    src/app                 Application source code
+    src/app/main.js         The browser app JS entry point
+    src/app/main-server.js  The server app JS entry point
+    src/app/app.js          The common root- dependency pulled by both entry points
+    src/components          The 3rd party JS dependencies
+    src/css                 The CSS templates
 
 ####  Build System
 
-    gulpfile.js         The Gulp build configuration
-    components.json     The Bower components
-    .bowerrc            The Bower directory overrides
-    package.json        The build level dependencies
+    gulpfile.js             The Gulp build configuration
+    bower.json              The Bower components
+    .bowerrc                The Bower directory overrides
+    package.json            The build level dependencies
 
 ### Build Results
 
-    dist/               The build results (debug and release builds)
-
-## Using BoBrSASS as an Upstream
-
-Upgrading the boilerplate in your project may be tedious work. Once BoBrSASS
-directory structure becomes stable (it might be already, but no guarantees!),
-you can use it directly as an upstream (here with a name 'bobrsass').
-
-    > git remote add -f bobrsass git@github.com:SC5/gulp-bobrsass-boilerplate.git
-
-Now synchronizing with BoBrSASS becomes easier:
-
-    > git pull bobrsass master
-
-It is possible to use BoBrSASS as a subtree, too:
-
-    > git subtree add --prefix client --squash git@github.com:SC5/gulp-bobrsass-boilerplate.git master --squash
-    > git remote add -f bobrsass git@github.com:SC5/gulp-bobrsass-boilerplate.git
-    > git fetch bobrsass master
-
-Note that you need to use a recent version of git that supports subtrees.
-
-The example pulls BoBrSASS master branch into 'client' subdirectory. The key here is to use
-'--prefix client' to keep the boilerplate in its own subdirectory. Later on, sync by:
-
-    > git subtree pull --prefix client bobrsass master
+    dist/bundle-server      The build results (browser and server bundles)
+    dist/index.html         The HTML stub that is transformed by the server
+    dist/assets/            Static assets (everything that browser loads except html
 
 ## TODO
 
-* SASS source maps
-* Test automation (Jasmine & Protractor)
-* Code style verifier using JSHint & some CSS linter
-* Add more examples & documentation
+* Source map support for the server-side bundles. Now debugging is real hard!
+* Demonstrate user sessions, e.g. how the app state is stored between requests
 
 ## Release History
 
-* 2014/02/12 - v0.1.0 - Initial commit (partially working stub)
-* 2014/02/24 - v0.1.1 - Fix the build errors, update README
+* 2014/03/07 - v0.1.0 - Initial commit (a working example)
 
 ## License
 
-Copyright (c) 2014 [SC5](http://sc5.io/), licensed for users and contributors under MIT license.
-https://github.com/sc5/grunt-bobrsass-boilerplate/blob/master/LICENSE-MIT
+Copyright (c) 2014 [SC5 Online](http://sc5.io/), licensed for users and contributors under
+[MIT license](http://opensource.org/licenses/MIT).

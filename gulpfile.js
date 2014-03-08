@@ -13,7 +13,6 @@ var path = require('path'),
     livereload = require('gulp-livereload'),
     plumber = require('gulp-plumber'),
     clean = require('gulp-clean'),
-    serve = require('gulp-serve'),
     gulpif = require('gulp-if'),
     uglify = require('gulp-uglify'),
     package = require('./package.json');
@@ -51,19 +50,15 @@ gulp.task('clean', function() {
     .pipe(clean());
 });
 
-/* Serve the web site */
-gulp.task('serve', serve({
-  root: 'dist',
-  port: 8080
-}));
-
 gulp.task('javascript', function() {
   // The non-MD5fied prefix, so that we know which version we are actually
   // referring to in case of fixing bugs
-  var bundleName = util.format('bundle-%s.js', config.version),
+  var bundleName = util.format('bundle-%s.js', package.version),
       componentsPath = 'src/components',
       browserifyConfig = {
-        debug: config.debug,
+        debug: Boolean(gutil.env.debug),
+        ignore: ['handlebars'],
+        transform: ['hbsfy'],
         shim: {
           jquery: {
             path: path.join(componentsPath, 'jquery/dist/jquery.js'),
@@ -79,7 +74,28 @@ gulp.task('javascript', function() {
     .pipe(plumber())
     .pipe(browserify(browserifyConfig))
     .pipe(concat(bundleName))
-    .pipe(gulpif(config.debug, uglify()))
+    // Integration test
+    .pipe(gulp.dest('dist/assets'));
+});
+
+gulp.task('javascript-server', function() {
+  // The non-MD5fied prefix, so that we know which version we are actually
+  // referring to in case of fixing bugs
+  var bundleName = util.format('bundle-server.js'),
+      componentsPath = 'src/components',
+      browserifyConfig = {
+        debug: Boolean(gutil.env.debug),
+        ignore: ['jquery'],
+        transform: ['hbsfy']
+      };
+
+  return gulp.src('src/app/main-server.js', { read: false })
+    // Compile
+    // Unit test
+    // Integrate (link, package, concatenate)
+    .pipe(plumber())
+    .pipe(browserify(browserifyConfig))
+    .pipe(concat(bundleName))
     // Integration test
     .pipe(gulp.dest('dist'));
 });
@@ -88,7 +104,7 @@ gulp.task('stylesheets', function() {
   // The non-MD5fied prefix, so that we know which version we are actually
   // referring to in case of fixing bugs
   var bundleName = util.format('styles-%s.css', config.version);
-  
+
   return gulp.src('src/css/styles.scss')
     .pipe(plumber())
     // Compile
@@ -101,7 +117,7 @@ gulp.task('stylesheets', function() {
     // Integrate (link, package, concatenate)
     .pipe(concat(bundleName))
     // Integrate
-    .pipe(gulp.dest('dist/css'));
+    .pipe(gulp.dest('dist/assets'));
     // Integration test
 });
 
@@ -116,18 +132,18 @@ gulp.task('clean', function() {
     .pipe(clean());
 });
 
-gulp.task('integrate', ['javascript', 'stylesheets', 'assets'],  function() {
-  return gulp.src(['dist/*.js', 'dist/css/*.css'])
-    .pipe(inject('src/index.html', { ignorePath: ['/dist/'], addRootSlash: false }))
+gulp.task('integrate', ['javascript', 'javascript-server', 'stylesheets', 'assets'],  function() {
+  return gulp.src(['dist/assets/*.js', 'dist/assets/*.css'])
+    .pipe(inject('src/index.html', { ignorePath: ['/dist/assets/'] }))
     .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('watch', ['integrate'], function() {
   var server = livereload();
-  
+
   // Watch the actual resources; Currently trigger a full rebuild
   gulp.watch(['src/css/**/*.scss', 'src/app/**/*.js', 'src/app/**/*.hbs', 'src/*.html'], ['integrate']);
-  
+
   // Only livereload if the HTML (or other static assets) are changed, because
   // the HTML will change for any JS or CSS change
   gulp.src('dist/**', { read: false })

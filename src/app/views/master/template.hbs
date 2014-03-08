@@ -1,0 +1,10 @@
+<ul>
+  <!-- TODO: Ask different states from client -->
+  {{#each collection}}
+  <li>
+    <a href="/items/{{this.id}}">
+      {{this.name}}
+    </a>
+  </li>
+  {{/each}}
+</ul>

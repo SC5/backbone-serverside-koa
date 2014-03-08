@@ -1,6 +1,6 @@
 {
-  "name": "gulp-bobrsass-boilerplate",
-  "version": "0.3.0",
+  "name": "backbone-serverside-koa",
+  "version": "0.1.0",
   "dependencies": {
     "jquery": "2.1.0"
   },
