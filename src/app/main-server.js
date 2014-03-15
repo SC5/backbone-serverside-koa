@@ -3,7 +3,7 @@ var Backbone = require('backbone'),
 
 // Environment-provided globals for runtime patching: $ and adapters
 Backbone.$ = $;
-_.extend(Backbone.history, adapters.backbone.history);
+adapters.backbone.inject(Backbone);
 
 // Expose app in global scope, so that we can refer to it
 app = require('./app.js');
