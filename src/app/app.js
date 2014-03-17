@@ -72,11 +72,21 @@ _.extend(App, {
   },
 
   unlock: function(instance) {
+    var that = this;
     this.locks = _.without(this.locks, instance);
 
     // If no further locks, emit idle event
-    //console.log('Removing a lock');
-    this.trigger('idle');
+    if (this.locks.length > 0) {
+      return;
+    }
+
+    // Wait for the lock check until the call stack has cleared
+    setTimeout(function() {
+      if (that.locks.length === 0) {
+        console.log('Trigger idle');
+        that.trigger('idle');
+      }
+    }, 0);
   },
 
   // Waits until all the locks have been released.
