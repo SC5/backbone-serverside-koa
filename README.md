@@ -19,7 +19,7 @@ using this approach.
 
 ## Installation
 
-If you don't already have node.js 0.10.x or later, fetch it from
+If you don't already have node.js 0.11.9 or later, fetch it from
 [nodejs.org](http://www.nodejs.org/). In addition we need a few dependencies
 you may have.
 
@@ -108,4 +108,3 @@ Copyright (c) 2014 [SC5 Online](http://sc5.io/), licensed for users and contribu
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/SC5/backbone-serverside-koa/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
